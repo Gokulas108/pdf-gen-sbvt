@@ -76,7 +76,8 @@ app.get("/download-ticket", async (req, res) => {
     const pdfBytes = await pdfDoc.save();
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="Ticket.pdf"');
+    // Change "attachment" to "inline"
+    res.setHeader("Content-Disposition", 'inline; filename="Ticket.pdf"');
     res.send(Buffer.from(pdfBytes));
   } catch (error) {
     // If it crashes, this will print the EXACT reason in your terminal
