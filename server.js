@@ -77,7 +77,10 @@ app.get("/download-ticket", async (req, res) => {
 
     res.setHeader("Content-Type", "application/pdf");
     // Change "attachment" to "inline"
-    res.setHeader("Content-Disposition", 'inline; filename="Ticket.pdf"');
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="WoL-Certificate.pdf"',
+    );
     res.send(Buffer.from(pdfBytes));
   } catch (error) {
     // If it crashes, this will print the EXACT reason in your terminal
