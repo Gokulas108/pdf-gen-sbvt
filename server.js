@@ -65,7 +65,7 @@ app.get("/download-ticket", async (req, res) => {
     };
 
     // Nudge qty and block UP by 1.5 pixels (adjust this number until it's perfect!)
-    nudgeFieldUp("qty", 2.5);
+    nudgeFieldUp("qty", 0.8);
     nudgeFieldUp("block", 2.5);
 
     // 5. FORCE ALL FIELDS TO USE NOTO SERIF
