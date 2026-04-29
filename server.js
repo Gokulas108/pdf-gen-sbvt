@@ -16,19 +16,21 @@ app.get("/download-ticket", async (req, res) => {
     // 2. REGISTER FONTKIT BEFORE DOING ANYTHING ELSE
     pdfDoc.registerFontkit(fontkit);
 
-    // 3. LOAD THE PHYSICAL NOTO SERIF FILE
-    // Make sure this matches the exact file name in your folder!
-    const fontBytes = await fs.readFile("./ibm.ttf");
+    // 3. LOAD THE PHYSICAL FONT FILES
+    // Make sure these match the exact file names in your folder!
+    const bodyFontBytes = await fs.readFile("./ibm.ttf");
+    const nameFontBytes = await fs.readFile("./NotoSerif-BoldItalic.ttf");
 
-    // 4. EMBED IT INTO THE PDF
-    const notoFont = await pdfDoc.embedFont(fontBytes);
+    // 4. EMBED THEM INTO THE PDF
+    const bodyFont = await pdfDoc.embedFont(bodyFontBytes);
+    const nameFont = await pdfDoc.embedFont(nameFontBytes);
 
     const form = pdfDoc.getForm();
 
     if (name) {
       const nameField = form.getTextField("name");
       nameField.setText(name);
-      nameField.setFontSize(20); // Set a hardcoded size here
+      nameField.setFontSize(28);
     }
 
     if (qty) {
@@ -68,7 +70,18 @@ app.get("/download-ticket", async (req, res) => {
 
     // 5. FORCE ALL FIELDS TO USE NOTO SERIF
     // Good line (no curly braces!):
-    form.updateFieldAppearances(notoFont);
+    form.updateFieldAppearances(bodyFont);
+
+    // Apply Noto Bold Italic to name, qty, and block
+    if (name) {
+      form.getTextField("name").updateAppearances(nameFont);
+    }
+    if (qty) {
+      form.getTextField("qty").updateAppearances(nameFont);
+    }
+    if (block) {
+      form.getTextField("block").updateAppearances(nameFont);
+    }
 
     // Now flatten!
     form.flatten();
