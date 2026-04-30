@@ -8,7 +8,7 @@ const port = process.env.PORT || 3000;
 
 app.get("/download-ticket", async (req, res) => {
   try {
-    const { name, qty, block } = req.query;
+    const { name, qty, block, serial } = req.query;
     const templateBytes = await fs.readFile("./template.pdf");
 
     const pdfDoc = await PDFDocument.load(templateBytes);
@@ -20,10 +20,14 @@ app.get("/download-ticket", async (req, res) => {
     // Make sure these match the exact file names in your folder!
     const bodyFontBytes = await fs.readFile("./ibm.ttf");
     const nameFontBytes = await fs.readFile("./NotoSerif-BoldItalic.ttf");
+    const serialFontBytes = await fs.readFile(
+      "./NotoSerif-VariableFont_wdth,wght.ttf",
+    );
 
     // 4. EMBED THEM INTO THE PDF
     const bodyFont = await pdfDoc.embedFont(bodyFontBytes);
     const nameFont = await pdfDoc.embedFont(nameFontBytes);
+    const serialFont = await pdfDoc.embedFont(serialFontBytes);
 
     const form = pdfDoc.getForm();
 
@@ -43,6 +47,12 @@ app.get("/download-ticket", async (req, res) => {
       const blockField = form.getTextField("block");
       blockField.setText(block);
       blockField.setFontSize(21);
+    }
+
+    if (serial) {
+      const serialField = form.getTextField("serial");
+      serialField.setText(serial);
+      serialField.setFontSize(10);
     }
 
     const nudgeFieldUp = (fieldName, pixels) => {
@@ -81,6 +91,9 @@ app.get("/download-ticket", async (req, res) => {
     }
     if (block) {
       form.getTextField("block").updateAppearances(nameFont);
+    }
+    if (serial) {
+      form.getTextField("serial").updateAppearances(serialFont);
     }
 
     // Now flatten!
