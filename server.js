@@ -115,6 +115,108 @@ app.get("/download-ticket", async (req, res) => {
   }
 });
 
+app.get("/generate-reciept", async (req, res) => {
+  try {
+    const {
+      receipt_no,
+      receipt_date,
+      legal_name,
+      address,
+      pincode,
+      phone_no,
+      email,
+      payment_reference,
+      pan_no,
+      payment_date,
+      amount,
+      amount_in_words,
+    } = req.query;
+
+    const templateBytes = await fs.readFile("./reciept.pdf");
+    const pdfDoc = await PDFDocument.load(templateBytes);
+    pdfDoc.registerFontkit(fontkit);
+
+    const bodyFontBytes = await fs.readFile("./ibm.ttf");
+    const legalNameFontBytes = await fs.readFile("./NotoSerif-BoldItalic.ttf");
+    const bodyFont = await pdfDoc.embedFont(bodyFontBytes);
+    const legalNameFont = await pdfDoc.embedFont(legalNameFontBytes);
+
+    const form = pdfDoc.getForm();
+
+    if (receipt_no) form.getTextField("receipt_no").setText(receipt_no);
+    if (receipt_date) form.getTextField("receipt_date").setText(receipt_date);
+    if (legal_name) form.getTextField("legal_name").setText(legal_name);
+    if (address) form.getTextField("address").setText(address);
+    if (pincode) form.getTextField("pincode").setText(pincode);
+    if (phone_no) form.getTextField("phone_no").setText(phone_no);
+    if (email) form.getTextField("email").setText(email);
+    if (payment_reference)
+      form.getTextField("payment_reference").setText(payment_reference);
+    if (pan_no) form.getTextField("pan_no").setText(pan_no);
+    if (payment_date) form.getTextField("payment_date").setText(payment_date);
+    if (amount) form.getTextField("amount").setText(amount);
+    if (amount_in_words)
+      form.getTextField("amount_in_words").setText(amount_in_words);
+    form
+      .getTextField("notes")
+      .setText(
+        "Towards the contribution for Srila Bhaktivinoda Thakur's Wall Of Legacy Campaign",
+      );
+
+    const nudgeFieldUp = (fieldName, pixels) => {
+      try {
+        const field = form.getTextField(fieldName);
+        const widget = field.acroField.getWidgets()[0];
+        const rect = widget.getRectangle();
+
+        widget.setRectangle({
+          x: rect.x,
+          y: rect.y + pixels,
+          width: rect.width,
+          height: rect.height,
+        });
+      } catch (e) {
+        // Ignore if field doesn't exist
+      }
+    };
+
+    const nudgeFields = [
+      "receipt_no",
+      "receipt_date",
+      "legal_name",
+      "address",
+      "pincode",
+      "phone_no",
+      "email",
+      "payment_reference",
+      "pan_no",
+      "payment_date",
+      "amount",
+      "amount_in_words",
+      "notes",
+    ];
+    nudgeFields.forEach((fieldName) => nudgeFieldUp(fieldName, 2));
+
+    form.updateFieldAppearances(bodyFont);
+    if (legal_name) {
+      form.getTextField("legal_name").updateAppearances(legalNameFont);
+    }
+    form.flatten();
+
+    const pdfBytes = await pdfDoc.save();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="WoL-Receipt.pdf"',
+    );
+    res.send(Buffer.from(pdfBytes));
+  } catch (error) {
+    console.error("RECEIPT GENERATION FAILED:", error);
+    res.status(500).json({ error: "Failed to generate receipt PDF" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running!`);
 });
