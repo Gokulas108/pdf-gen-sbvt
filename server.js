@@ -156,7 +156,7 @@ app.get("/generate-reciept", async (req, res) => {
       form.getTextField("payment_reference").setText(payment_reference);
     if (pan_no) form.getTextField("pan_no").setText(pan_no);
     if (payment_date) form.getTextField("payment_date").setText(payment_date);
-    if (amount) form.getTextField("amount").setText(`₹${amount}/-`);
+    if (amount) form.getTextField("amount").setText(amount);
     if (amount_in_words) {
       const amountInWordsField = form.getTextField("amount_in_words");
       amountInWordsField.setText(amount_in_words);
