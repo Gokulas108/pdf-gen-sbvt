@@ -227,6 +227,6 @@ app.get("/generate-reciept", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(port, () => {
   console.log(`Server is running!`);
 });
