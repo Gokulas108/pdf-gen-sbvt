@@ -130,9 +130,11 @@ app.get("/generate-reciept", async (req, res) => {
       payment_date,
       amount,
       amount_in_words,
+      mode_of_payment,
+      notes,
     } = req.query;
 
-    const templateBytes = await fs.readFile("./reciept.pdf");
+    const templateBytes = await fs.readFile("./receipt.pdf");
     const pdfDoc = await PDFDocument.load(templateBytes);
     pdfDoc.registerFontkit(fontkit);
 
@@ -154,14 +156,15 @@ app.get("/generate-reciept", async (req, res) => {
       form.getTextField("payment_reference").setText(payment_reference);
     if (pan_no) form.getTextField("pan_no").setText(pan_no);
     if (payment_date) form.getTextField("payment_date").setText(payment_date);
-    if (amount) form.getTextField("amount").setText(amount);
-    if (amount_in_words)
-      form.getTextField("amount_in_words").setText(amount_in_words);
-    form
-      .getTextField("notes")
-      .setText(
-        "Towards the contribution for Srila Bhaktivinoda Thakur's Wall Of Legacy Campaign",
-      );
+    if (amount) form.getTextField("amount").setText(`₹${amount}/-`);
+    if (amount_in_words) {
+      const amountInWordsField = form.getTextField("amount_in_words");
+      amountInWordsField.setText(amount_in_words);
+      amountInWordsField.setFontSize(14);
+    }
+    if (mode_of_payment)
+      form.getTextField("mode_of_payment").setText(mode_of_payment);
+    form.getTextField("notes").setText(notes || "Wall Of Legacy Campaign");
 
     const nudgeFieldUp = (fieldName, pixels) => {
       try {
@@ -193,9 +196,16 @@ app.get("/generate-reciept", async (req, res) => {
       "payment_date",
       "amount",
       "amount_in_words",
+      "mode_of_payment",
       "notes",
     ];
-    nudgeFields.forEach((fieldName) => nudgeFieldUp(fieldName, 2));
+    nudgeFields.forEach((fieldName) => {
+      let pixels = -2;
+      if (fieldName === "amount") pixels = 2;
+      else if (fieldName === "amount_in_words") pixels = 1;
+      else if (fieldName === "address") pixels = 0;
+      nudgeFieldUp(fieldName, pixels);
+    });
 
     form.updateFieldAppearances(bodyFont);
     if (legal_name) {
@@ -217,6 +227,6 @@ app.get("/generate-reciept", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+app.listen(PORT, () => {
   console.log(`Server is running!`);
 });
